@@ -18,6 +18,7 @@ use GuzzleHttp;
 abstract class apiCore implements coreInterface{
 
     protected $request;
+    protected $version;
     private $httpMethod = 'GET';
     private $bodyFormat = 'body';
     private $lastResult;
@@ -72,6 +73,7 @@ abstract class apiCore implements coreInterface{
      */
     public function setVersion($version, $flag = TRUE)
     {
+        $this->version = $version;
         $this->request->setVersion($version, $flag);
         return $this;
     }
@@ -91,6 +93,14 @@ abstract class apiCore implements coreInterface{
                 break;
         }
         return $this;
+    }
+
+    /**
+     * Get the current version provided to the API
+     * @return mixed
+     */
+    public function getVersion(){
+        return $this->version;
     }
 
     /**

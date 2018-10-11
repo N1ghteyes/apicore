@@ -60,6 +60,11 @@ abstract class apiCore implements coreInterface{
         return $this;
     }
 
+    /**
+     * Set the base request path
+     * @param $path
+     * @return $this
+     */
     public function setBasePath($path){
         $this->request->setBasePath($path);
         return $this;
@@ -185,7 +190,7 @@ abstract class apiCore implements coreInterface{
 
     /**
      * Function to process the response from Guzzle, based on the expected format
-     * @param $result
+     * @param $response
      * @return mixed
      */
     public function processResult($response){

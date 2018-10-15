@@ -79,7 +79,7 @@ class request {
         if($reset){
             $this->path = $elements;
         } else {
-            $this->path += $elements;
+            array_push($this->path,  $elements);
         }
         return $this;
     }

@@ -79,7 +79,7 @@ class request {
         if($reset){
             $this->path = $elements;
         } else {
-            array_merge($this->path,  $elements);
+            $this->path = array_merge($this->path,  $elements);
         }
         return $this;
     }

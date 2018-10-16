@@ -22,10 +22,10 @@ abstract class apiCore implements coreInterface{
     private $httpMethod = 'GET';
     private $bodyFormat = 'body';
     private $lastResult;
-    private $args = [];
+    private $args = array();
     private $rawResponse = FALSE;
     private $processedResponse = FALSE;
-    private $errors = [];
+    private $errors = array();
 
     /**
      * apiCore constructor.
@@ -124,7 +124,7 @@ abstract class apiCore implements coreInterface{
                 break;
             case 'basic':
             default:
-                $this->args['auth'] = [$key, $value];
+                $this->args['auth'] = array($key, $value);
             break;
         }
     }
@@ -174,7 +174,7 @@ abstract class apiCore implements coreInterface{
     public function __call($name, $arguments)
     {
         $client = new GuzzleHttp\Client();
-        $query = count($arguments) < 1 || !is_array($arguments[0]) ? [] : $arguments[0];
+        $query = count($arguments) < 1 || !is_array($arguments[0]) ? array() : $arguments[0];
         $this->request->addEndpoint($name);
         $this->processArgs($query);
         try {
@@ -240,11 +240,11 @@ abstract class apiCore implements coreInterface{
      */
     private function setDefaultCurlOpts(){
         $this->args['config'] =
-            [
-                'curl' => [
+            array(
+                'curl' => array(
                     CURLOPT_SSLVERSION => 6,
-                ]
-            ];
+                )
+            );
     }
 
     /**

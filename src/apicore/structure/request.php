@@ -12,7 +12,7 @@ class request {
     private $useVersion;
     private $queryString = '';
     private $endpoint;
-    private $path = [];
+    private $path = array();
 
     public function __construct()
     {
@@ -69,7 +69,7 @@ class request {
      * @return $this
      */
     public function addPathElement($path, $reset = FALSE){
-        $elements = [];
+        $elements = array();
         $path = ltrim($path, '/');
         if(strpos($path, '/') !== FALSE){
             $elements = explode('/', $path);
@@ -92,7 +92,7 @@ class request {
      * Function to reset the path part of the request. Allows a request object to be reused.
      */
     public function resetPath(){
-        $this->path = [];
+        $this->path = array();
         return $this;
     }
 

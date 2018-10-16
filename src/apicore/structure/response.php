@@ -10,7 +10,7 @@ class response{
     public $rawBodyData;
 
     private static $response;
-    private static $errors;
+    private static $error;
 
     private function __construct(){}
 
@@ -47,6 +47,6 @@ class response{
      * @param $message
      */
     public static function addError($code, $message){
-        self::$errors[] = array('code' => $code, 'message' => $message);
+        self::$error = array('code' => $code, 'message' => $message);
     }
 }

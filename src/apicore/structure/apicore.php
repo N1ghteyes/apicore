@@ -25,6 +25,7 @@ abstract class apiCore implements coreInterface{
     private $args = [];
     private $rawResponse = FALSE;
     private $processedResponse = FALSE;
+    private $errors = [];
 
     /**
      * apiCore constructor.
@@ -180,10 +181,8 @@ abstract class apiCore implements coreInterface{
             $res = $client->request($this->httpMethod, (string)$this->request, $this->args);
             $this->processResult($res);
         } catch (GuzzleHttp\Exception\GuzzleException $e){
-            print "<pre>";
-            print_r($e->getCode());
-            print_r($e->getMessage());
-            print "</pre>";
+            $this->errors['code'] = $e->getCode();
+            $this->errors['message'] = $e->getMessage();
         }
 
         return $this->processedResponse;
@@ -214,6 +213,14 @@ abstract class apiCore implements coreInterface{
      */
     public function getLastResult(){
         return $this->lastResult;
+    }
+
+    /**
+     * Getter for the errors array
+     * @return array
+     */
+    public function getErrors(){
+        return $this->errors;
     }
 
     /**

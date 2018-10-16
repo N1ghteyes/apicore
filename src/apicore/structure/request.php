@@ -105,6 +105,13 @@ class request {
     }
 
     /**
+     * Function to reset the query string.
+     */
+    public function resetQueryString(){
+        $this->queryString = '';
+    }
+
+    /**
      * Function to add
      * @param $endPoint
      */

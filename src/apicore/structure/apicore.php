@@ -185,6 +185,11 @@ abstract class apiCore implements coreInterface{
             $this->errors['message'] = $e->getMessage();
         }
 
+        //reset some stuff post-query so we can handle the next one cleanly. Leave auth and headers in place by default.
+        $this->request->resetQueryString();
+        unset($this->args['query']);
+        unset($this->args[$this->bodyFormat]);
+
         return $this->processedResponse;
     }
 

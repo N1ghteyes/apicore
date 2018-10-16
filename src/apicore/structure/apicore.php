@@ -177,12 +177,13 @@ abstract class apiCore implements coreInterface{
         $query = count($arguments) < 1 || !is_array($arguments[0]) ? array() : $arguments[0];
         $this->request->addEndpoint($name);
         $this->processArgs($query);
+        $response = response::getInstance();
         try {
-            $res = $client->request($this->httpMethod, (string)$this->request, $this->args);
-            $this->processResult($res);
+            $result = $client->request($this->httpMethod, (string)$this->request, $this->args);
+            //$this->processResult($result);
+            $response::processResult($result);
         } catch (GuzzleHttp\Exception\GuzzleException $e){
-            $this->errors['code'] = $e->getCode();
-            $this->errors['message'] = $e->getMessage();
+            $response::addError($e->getCode(), $e->getMessage());
         }
 
         //reset some stuff post-query so we can handle the next one cleanly. Leave auth and headers in place by default.
@@ -190,7 +191,7 @@ abstract class apiCore implements coreInterface{
         unset($this->args['query']);
         unset($this->args[$this->bodyFormat]);
 
-        return $this->processedResponse;
+        return $response;
     }
 
     /**
@@ -201,7 +202,7 @@ abstract class apiCore implements coreInterface{
     public function processResult($response){
         $type = array_shift($response->getHeader('Content-Type'));
         $this->rawResponse = (string)$response->getBody();
-        $status = $response->getStatusCode();
+        $this->httpStatus = $response->getStatusCode();
 
         switch($type){
             case 'application/json':

@@ -120,6 +120,7 @@ abstract class apiCore implements coreInterface{
         switch($type) {
             case "header":
                 $this->args['headers'][$key] = $value;
+                break;
             case 'basic':
             default:
                 $this->args['auth'] = [$key, $value];

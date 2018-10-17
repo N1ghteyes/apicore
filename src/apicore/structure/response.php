@@ -13,6 +13,7 @@ class response{
     public $dataType;
     public $data;
     public $verb;
+    public $url;
     public $rawBodyData;
 
     private static $response;
@@ -47,7 +48,8 @@ class response{
         self::$response->dataType = array_shift($guzzleResponse->getHeader('Content-Type'));
         self::$response->statusCode = $guzzleResponse->getStatusCode();
         self::$response->rawBodyData = $guzzleResponse->getBody();
-
+        self::$response->url = $guzzleResponse->getEffectiveUrl();
+        
         switch(self::$response->dataType){
             case 'application/json':
             default:

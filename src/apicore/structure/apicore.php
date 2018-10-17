@@ -244,7 +244,7 @@ abstract class apiCore implements coreInterface{
         $this->args['config'] =
             array(
                 'curl' => array(
-                    CURLOPT_SSLVERSION => 6,
+                    'CURLOPT_SSLVERSION' => 6,
                 )
             );
     }

@@ -48,7 +48,7 @@ class response{
         self::$response->dataType = array_shift($guzzleResponse->getHeader('Content-Type'));
         self::$response->statusCode = $guzzleResponse->getStatusCode();
         self::$response->rawBodyData = $guzzleResponse->getBody();
-        self::$response->url = $guzzleResponse->getEffectiveUrl();
+        self::$response->url = $guzzleResponse->getHeaderLine('X-GUZZLE-EFFECTIVE-URL');
 
         switch(self::$response->dataType){
             case 'application/json':

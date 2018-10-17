@@ -49,7 +49,7 @@ class response{
         self::$response->statusCode = $guzzleResponse->getStatusCode();
         self::$response->rawBodyData = $guzzleResponse->getBody();
         self::$response->url = $guzzleResponse->getEffectiveUrl();
-        
+
         switch(self::$response->dataType){
             case 'application/json':
             default:

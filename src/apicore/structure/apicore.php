@@ -178,6 +178,7 @@ abstract class apiCore implements coreInterface{
         $this->request->addEndpoint($name);
         $this->processArgs($query);
         $response = response::getInstance();
+        $response::verbUsed($this->httpMethod); //set the verb used for the request,
         try {
             $result = $client->request($this->httpMethod, (string)$this->request, $this->args);
             //$this->processResult($result);

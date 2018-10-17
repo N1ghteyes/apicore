@@ -2,11 +2,17 @@
 
 namespace n1ghteyes\apicore\structure;
 
+/**
+ * @todo make this better.
+ * Class response
+ * @package n1ghteyes\apicore\structure
+ */
 class response{
 
     public $statusCode;
     public $dataType;
     public $data;
+    public $verb;
     public $rawBodyData;
 
     private static $response;
@@ -23,6 +29,14 @@ class response{
             self::$response = new response();
         }
         return self::$response;
+    }
+
+    /**
+     * Allow the verb used to be recorded as guzzle doesn't provide this info post request.
+     * @param $verb
+     */
+    public static function verbUsed($verb){
+        self::$response->verb = $verb;
     }
 
     /**

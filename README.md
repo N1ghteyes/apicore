@@ -21,6 +21,20 @@ If you can, this should be installed with composer. Please note this is not curr
 ```bash
 $ composer require n1ghteyes/apicore
 ```
+### Basic request structure
+
+In order to make a request after setting some default values (info below), you must constuct a chain. the general structure is as follows:
+
+```php
+$response = $api->{HTTP VERB}->{PATH 1}->{PATH 2}->{ENDPOINT}({Args as array});
+```
+
+In more general terms, using a request to twitter as an example:
+see: https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-user_timeline.html
+
+> *In this instance twitter requires us to specify a file ending. As such the endpoint must be called as an encausulated string*
+
+$response = $api->GET->statuses->{"user_timeline.json"}(["screen_name" => "noradio"]);
 
 ### Basic usage - Twitter Example
 
@@ -35,7 +49,7 @@ $api = new client();
 $api->setServer("api.twitter.com");
 
 //Set the API version - This can be an arbitrary number. If you would like to exclude the version number from the request path, pass FALSE as the second argument.
-$api->setVersion("v1", FALSE);
+$api->setVersion("1.1", FALSE);
 
 //Make a request to the oauth endpoint to generate a grant token:
 //@see https://developer.twitter.com/en/docs/basics/authentication/api-reference/token
@@ -49,7 +63,7 @@ You can then go on to access other methods on the oauth2 route:
 $response # $api->POST->invalidate_token(["access_token" => "xxxx"])
 ```
 > #### *NOTE*
-> *In order to use a new route (reset the path to the bash url) you must call the reset path method. This may change in the future, but for now:*
+> *In order to use a new route (reset the path to the base url) you must call the reset path method. This may change in the future, but for now:*
 >
 > ```php
 > //reset the path

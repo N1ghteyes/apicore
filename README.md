@@ -34,7 +34,9 @@ see: https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-st
 
 > *In this instance twitter requires us to specify a file ending. As such the endpoint must be called as an encausulated string*
 
+```php
 $response = $api->GET->statuses->{"user_timeline.json"}(["screen_name" => "noradio"]);
+```
 
 ### Basic usage - Twitter Example
 

@@ -22,4 +22,58 @@ If you can, this should be installed with composer. Please note this is not curr
 $ composer require n1ghteyes/apicore
 ```
 
-### Basic usage
+### Basic usage - Twitter Example
+
+This example assumes you have already included the vendor autoload file.
+```php
+use n1ghteyes\apicore\client
+
+//Instanciate the class.
+$api = new client();
+
+//Set the API server (In this example, twitter) - We assume the connection is HTTPS.
+$api->setServer("api.twitter.com");
+
+//Set the API version - This can be an arbitrary number. If you would like to exclude the version number from the request path, pass FALSE as the second argument.
+$api->setVersion("v1", FALSE);
+
+//Make a request to the oauth endpoint to generate a grant token:
+//@see https://developer.twitter.com/en/docs/basics/authentication/api-reference/token
+$response = $api->POST->oauth2->token(['grant_type' => "xxxxxx"]);
+```
+
+The above example constructs a POST request for the following URL: https://api.twitter.com/oauth2/token passing grant_type in the POST body.
+
+You can then go on to access other methods on the oauth2 route:
+```php
+$response # $api->POST->invalidate_token(["access_token" => "xxxx"])
+```
+> #### *NOTE*
+> *In order to use a new route (reset the path to the bash url) you must call the reset path method. This may change in the future, but for now:*
+>
+> ```php
+> //reset the path
+> $api->resetPath();
+> ```
+
+### Authentication
+
+The class supports several authentication methods.
+
+#### Basic Authentication (base62 encoded HTTP Auth)
+
+One of the most common methods of authentication with anopther service is basic http authentication.
+
+```php
+//The methid will automatically encode the values passed here.
+$api->auth("user", "password");
+```
+
+#### Token Based Authentication
+
+If you need to pass a grant or request token generated through oauth, you can also use the auth method as follows
+
+```php
+//Adding a third argument of "header" treats the first argument as the header name and the second as the header value. This can be used to add any custom header to the request. 
+$api->auth("header-key", "token", "header")
+```

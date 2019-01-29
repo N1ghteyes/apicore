@@ -32,7 +32,7 @@ $response = $api->{HTTP VERB}->{PATH 1}->{PATH 2}->{ENDPOINT}({Args as array});
 In more general terms, using a request to twitter as an example:
 see: https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-user_timeline.html
 
-> *In this instance twitter requires us to specify a file ending. As such the endpoint must be called as an encausulated string*
+> *In this instance twitter requires us to specify a file ending. As such the endpoint must be called as an encapsulated string*
 
 ```php
 $response = $api->GET->statuses->{"user_timeline.json"}(["screen_name" => "noradio"]);
@@ -81,7 +81,7 @@ The class supports several authentication methods.
 One of the most common methods of authentication with anopther service is basic http authentication.
 
 ```php
-//The methid will automatically encode the values passed here.
+//The method will automatically encode the values passed here.
 $api->auth("user", "password");
 ```
 

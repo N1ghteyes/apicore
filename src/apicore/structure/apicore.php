@@ -174,7 +174,7 @@ abstract class apiCore implements coreInterface{
     public function __call($name, $arguments)
     {
         $client = new GuzzleHttp\Client();
-        $query = count($arguments) < 1 || !is_array($arguments[0]) ? array() : $arguments[0];
+        $query = count($arguments) < 1 || !is_array($arguments) ? array() : $arguments[0];
         $this->request->addEndpoint($name);
         $this->processArgs($query);
         $response = response::getInstance();
@@ -235,6 +235,10 @@ abstract class apiCore implements coreInterface{
      */
     public function resetPath(){
         $this->request->resetPath();
+    }
+
+    public function addCurlOpts($opts){
+        $this->args['config'][0]['curl'] = array_merge($this->args['config'][0]['curl'], $opts);
     }
 
     /**

@@ -89,7 +89,7 @@ abstract class apiCore implements coreInterface{
      * @param $format
      * @return mixed
      */
-    public function setBodyFormat($format = 'form'){
+    public function setBodyFormat($format = 'body'){
         switch($format){
             case 'form':
                 $this->bodyFormat = 'form_params';

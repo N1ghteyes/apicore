@@ -238,7 +238,7 @@ abstract class apiCore implements coreInterface{
     }
 
     public function addCurlOpts($opts){
-        $this->args['config'][0]['curl'] = array_merge($this->args['config'][0]['curl'], $opts);
+        $this->args['config']['curl'] = array_merge($this->args['config']['curl'], $opts);
     }
 
     /**

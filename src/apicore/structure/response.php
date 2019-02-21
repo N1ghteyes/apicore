@@ -2,6 +2,8 @@
 
 namespace n1ghteyes\apicore\structure;
 
+use GuzzleHttp;
+
 /**
  * @todo make this better.
  * Class response
@@ -42,7 +44,7 @@ class response{
 
     /**
      * Process the provided guzzle response object.
-     * @param $guzzleResponse
+     * @param GuzzleHttp $guzzleResponse
      */
     public static function processResult($guzzleResponse){
         self::$response->dataType = array_shift($guzzleResponse->getHeader('Content-Type'));
@@ -51,6 +53,9 @@ class response{
         self::$response->url = $guzzleResponse->getHeaderLine('Location');
 
         switch(self::$response->dataType){
+            case 'text/xml':
+                self::$response->data = simplexml_load_string(self::$response->rawBodyData);
+                break;
             case 'application/json':
             default:
             self::$response->data = json_decode(self::$response->rawBodyData);

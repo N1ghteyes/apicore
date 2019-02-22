@@ -18,6 +18,7 @@ class response{
     public $url;
     public $rawBodyData;
 
+    /** @var response */
     private static $response;
     private static $error;
 
@@ -54,7 +55,7 @@ class response{
 
         switch(self::$response->dataType){
             case 'text/xml':
-                self::$response->data = simplexml_load_string(self::$response->rawBodyData);
+                self::$response->data = self::$response->xml2array(simplexml_load_string(self::$response->rawBodyData));
                 break;
             case 'application/json':
             default:
@@ -69,5 +70,20 @@ class response{
      */
     public static function addError($code, $message){
         self::$error = array('code' => $code, 'message' => $message);
+    }
+
+    /**
+     * Convert simpleXML object to array.
+     * @see http://www.php.net/manual/en/ref.simplexml.php#111227
+     * @param $xmlObject
+     * @param array $out
+     * @return array
+     */
+    public function xml2array ( $xmlObject, $out = array () )
+    {
+        foreach ( (array) $xmlObject as $index => $node )
+            $out[$index] = ( is_object ( $node ) ||  is_array ( $node ) ) ? xml2array ( $node ) : $node;
+
+        return $out;
     }
 }

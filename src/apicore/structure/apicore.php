@@ -196,25 +196,6 @@ abstract class apiCore implements coreInterface{
     }
 
     /**
-     * Function to process the response from Guzzle, based on the expected format
-     * @param $response
-     * @return mixed
-     */
-    public function processResult($response){
-        $type = array_shift($response->getHeader('Content-Type'));
-        $this->rawResponse = (string)$response->getBody();
-        $this->httpStatus = $response->getStatusCode();
-
-        switch($type){
-            case 'application/json':
-            default:
-                $this->processedResponse = json_decode($this->rawResponse);
-                break;
-        }
-        return $this;
-    }
-
-    /**
      * Function to get the last result returned by an API call.
      * @return mixed
      */

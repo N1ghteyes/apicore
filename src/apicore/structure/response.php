@@ -54,6 +54,8 @@ class response{
         self::$response->url = $guzzleResponse->getHeaderLine('Location');
 
         switch(self::$response->dataType){
+            case 'text/html': //for now, as some Apis dont set correct headers for XML.
+                //@todo add the ability to override these defaults before a request is made.
             case 'text/xml':
                 self::$response->data = self::$response->xml2array(simplexml_load_string(self::$response->rawBodyData));
                 break;

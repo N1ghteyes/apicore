@@ -204,6 +204,14 @@ abstract class apiCore implements coreInterface{
     }
 
     /**
+     * Function to return the last endpoint we called.
+     * @return mixed
+     */
+    public function getLastCall(){
+        return $this->request->getEndpoint();
+    }
+
+    /**
      * Getter for the errors array
      * @return array
      */

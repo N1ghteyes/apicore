@@ -120,6 +120,14 @@ class request {
     }
 
     /**
+     * Allow us to grab the last endpoint call that was made.
+     * @return mixed
+     */
+    public function getEndpoint(){
+        return $this->endpoint;
+    }
+
+    /**
      * Function to build the final request string
      */
     private function buildRequest(){

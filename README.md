@@ -93,3 +93,26 @@ If you need to pass a grant or request token generated through oauth, you can al
 //Adding a third argument of "header" treats the first argument as the header name and the second as the header value. This can be used to add any custom header to the request. 
 $api->auth("header-key", "token", "header")
 ```
+
+### Other Notes
+
+#### Numeric endpoints
+You may come across an API where the endpoint (the final path element in the URL) is numeric or starts with a number, for example if that element is a numeric ID. In this instance, you must prepend that path with an underscore to make it a valid method for PHP.
+
+The API Core will strip the underscore off the final path element if the second character in that path is numeric.
+
+For example:
+
+```php
+//This is invalid, PHP will throw a fatal error.
+$id = 1234;
+$api->path1->path2->$id();
+
+//This is valid
+$id = '_1234';
+$api->path1->path2->$id();
+
+//Simplified to account for unknown, potentually numeric values:
+$endpoint = is_numeric($id) ? '_'.$id : $id;
+$api->path1->path2->$endpoint();
+```

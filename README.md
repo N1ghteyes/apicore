@@ -1,4 +1,4 @@
-# PHP API Core - Agnostic Class for Resful APIs
+# PHP API Core - Agnostic RESTful client for Resful APIs
 
 ### Description
 

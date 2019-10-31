@@ -175,6 +175,10 @@ abstract class apiCore implements coreInterface{
     {
         $client = new GuzzleHttp\Client();
         $query = count($arguments) < 1 || !is_array($arguments) ? array() : $arguments[0];
+        //Allow endpoints starting with an integer to be prepended with an underscore to make them valid method calls for PHP.
+        if (strpos($name, '_') === 0) {
+            $name = strlen($name) > 1 && is_numeric($name[1]) ? ltrim($name, '_') : $name;
+        }
         $this->request->addEndpoint($name);
         $this->processArgs($query);
         $response = response::getInstance();

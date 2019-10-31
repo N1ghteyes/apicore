@@ -250,16 +250,13 @@ abstract class apiCore implements coreInterface{
     private function processArgs($args){
         if(!empty($args)) {
             switch ($this->httpMethod) {
+                case 'DELETE':
                 case 'GET':
-                    $this->request->addQueryString($args);
+                    $this->args['query'] = $args;
                     break;
                 case 'PUT':
                 case 'POST':
                     $this->args[$this->bodyFormat] = $args;
-                    break;
-                    break;
-                case 'DELETE':
-                    $this->args['query'] = $args;
                     break;
             }
         }

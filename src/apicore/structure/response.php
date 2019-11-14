@@ -48,7 +48,8 @@ class response{
      * @param GuzzleHttp $guzzleResponse
      */
     public static function processResult($guzzleResponse){
-        self::$response->dataType = array_shift($guzzleResponse->getHeader('Content-Type'));
+        $dataType = $guzzleResponse->getHeader('Content-Type');
+        self::$response->dataType = array_shift($dataType);
         self::$response->statusCode = $guzzleResponse->getStatusCode();
         self::$response->rawBodyData = (string)$guzzleResponse->getBody();
         self::$response->url = $guzzleResponse->getHeaderLine('Location');

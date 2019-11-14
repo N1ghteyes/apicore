@@ -3,6 +3,7 @@ namespace n1ghteyes\apicore\structure;
 
 use n1ghteyes\apicore\interfaces\coreInterface;
 use GuzzleHttp;
+use n1ghteyes\apicore\interfaces\loggingInterface;
 
 /**
  * PHP class to handle connections to any number of APIs. Config provided by YAML config file, Can be extended to account for differences in api structure.
@@ -26,6 +27,8 @@ abstract class apiCore implements coreInterface{
     private $rawResponse = FALSE;
     private $processedResponse = FALSE;
     private $errors = array();
+    /** @var loggingInterface */
+    protected $logger;
 
     /**
      * apiCore constructor.
@@ -36,6 +39,10 @@ abstract class apiCore implements coreInterface{
         $this->setSchema(); //set the defaults
         $this->setDefaultCurlOpts();
         $this->setBodyFormat();
+    }
+
+    public function addLogger(loggingInterface $logger){
+        $this->logger = $logger;
     }
 
     /**
@@ -183,12 +190,26 @@ abstract class apiCore implements coreInterface{
         $this->processArgs($query);
         $response = response::getInstance();
         $response::verbUsed($this->httpMethod); //set the verb used for the request,
+        //do we have a logging class? If so, add data to it.
+        if(isset($this->logger)){
+            $this->logger->addMethod($this->httpMethod);
+            $this->logger->addRequestURL((string)$this->request);
+            $this->logger->addRequestArgs(json_encode($this->args));
+            $this->logger->addRequestEndpoint($name);
+            $this->logger->setRequestTime(time());
+        }
         try {
             $result = $client->request($this->httpMethod, (string)$this->request, $this->args);
             //$this->processResult($result);
             $response::processResult($result);
         } catch (GuzzleHttp\Exception\GuzzleException $e){
             $response::addError($e->getCode(), $e->getMessage());
+        }
+
+        if(isset($this->logger)){
+            $this->logger->setResponseTime(time());
+            $this->logger->addRawResponse($response->rawBodyData);
+            $this->logger->addResponseStatusCode($response->statusCode);
         }
 
         //reset some stuff post-query so we can handle the next one cleanly. Leave auth and headers in place by default.

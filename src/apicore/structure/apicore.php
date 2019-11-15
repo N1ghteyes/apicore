@@ -188,6 +188,8 @@ abstract class apiCore implements coreInterface{
         }
         $this->request->addEndpoint($name);
         $this->processArgs($query);
+        //clear the response object from last call.
+        response::resetData();
         $response = response::getInstance();
         $response::verbUsed($this->httpMethod); //set the verb used for the request,
         //do we have a logging class? If so, add data to it.

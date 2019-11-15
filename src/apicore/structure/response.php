@@ -35,6 +35,10 @@ class response{
         return self::$response;
     }
 
+    public static function resetData(){
+        self::$response = new response();
+    }
+
     /**
      * Allow the verb used to be recorded as guzzle doesn't provide this info post request.
      * @param $verb

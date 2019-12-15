@@ -132,7 +132,7 @@ abstract class apiCore implements coreInterface{
             case 'basic':
             default:
                 $this->args['auth'] = array($key, $value);
-            break;
+                break;
         }
     }
 
@@ -210,8 +210,13 @@ abstract class apiCore implements coreInterface{
 
         if(isset($this->logger)){
             $this->logger->setResponseTime(time());
-            $this->logger->addRawResponse($response->rawBodyData);
-            $this->logger->addResponseStatusCode($response->statusCode);
+            if(!empty($response->error)){
+                $this->logger->addRawResponse($response->error->message);
+                $this->logger->addResponseStatusCode($response->error->code);
+            } else {
+                $this->logger->addRawResponse($response->rawBodyData);
+                $this->logger->addResponseStatusCode($response->statusCode);
+            }
         }
 
         //reset some stuff post-query so we can handle the next one cleanly. Leave auth and headers in place by default.

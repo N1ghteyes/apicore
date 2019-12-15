@@ -66,7 +66,7 @@ class response{
                 break;
             case 'application/json':
             default:
-            self::$response->data = json_decode(self::$response->rawBodyData);
+                self::$response->data = json_decode(self::$response->rawBodyData);
                 break;
         }
     }
@@ -77,6 +77,10 @@ class response{
      */
     public static function addError($code, $message){
         self::$error = array('code' => $code, 'message' => $message);
+    }
+
+    public static function getError(){
+        return self::$error ?? [];
     }
 
     /**

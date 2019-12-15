@@ -3,7 +3,7 @@
     "description": "Package to communicate with RESTful API's in an agnostic way. Usues php magic __call function.",
     "type": "library",
     "require": {
-        "php" : "^5.3 || ^7.0",
+        "php" : "^7.1",
         "ext-json": "*",
         "ext-simplexml": "*",
         "guzzlehttp/guzzle": "^6.3"

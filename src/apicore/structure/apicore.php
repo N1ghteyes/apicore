@@ -210,9 +210,9 @@ abstract class apiCore implements coreInterface{
 
         if(isset($this->logger)){
             $this->logger->setResponseTime(time());
-            if(!empty($response->error)){
-                $this->logger->addRawResponse($response->error->message);
-                $this->logger->addResponseStatusCode($response->error->code);
+            if(!empty($error = $response::getError())){
+                $this->logger->addRawResponse($error['message']);
+                $this->logger->addResponseStatusCode($error['code']);
             } else {
                 $this->logger->addRawResponse($response->rawBodyData);
                 $this->logger->addResponseStatusCode($response->statusCode);

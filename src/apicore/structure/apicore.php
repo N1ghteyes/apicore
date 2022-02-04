@@ -173,6 +173,16 @@ abstract class apiCore implements coreInterface{
     }
 
     /**
+     * Occasionally we need to force a request, for example to the base domain.
+     * @param string $name
+     * @param array $arguments
+     * @return mixed
+     */
+    public function makeDirectRequest(string $name = '', array $arguments = []){
+        return $this->__call($name, $arguments);
+    }
+
+    /**
      * Magic __call method, will translate all function calls to object to API requests
      * @param $name - name of the function
      * @param $arguments - an array of arguments

@@ -2,7 +2,8 @@
 
 namespace n1ghteyes\apicore\interfaces;
 
-interface loggingInterface {
+interface loggingInterface
+{
     public function addMethod($method);
     public function addRequestURL($method);
     public function addRequestArgs($method);

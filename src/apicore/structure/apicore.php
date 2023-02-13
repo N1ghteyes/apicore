@@ -1,4 +1,5 @@
 <?php
+
 namespace n1ghteyes\apicore\structure;
 
 use n1ghteyes\apicore\interfaces\coreInterface;
@@ -16,16 +17,16 @@ use n1ghteyes\apicore\interfaces\loggingInterface;
 /**
  * Class apiCore
  */
-abstract class apiCore implements coreInterface{
-
+abstract class apiCore implements coreInterface
+{
     protected $request;
     protected $version;
     private $httpMethod = 'GET';
     private $bodyFormat = 'body';
     private $lastResult;
     private $args = array();
-    private $rawResponse = FALSE;
-    private $processedResponse = FALSE;
+    private $rawResponse = false;
+    private $processedResponse = false;
     private $errors = array();
     /** @var loggingInterface */
     protected $logger;
@@ -41,7 +42,8 @@ abstract class apiCore implements coreInterface{
         $this->setBodyFormat();
     }
 
-    public function addLogger(loggingInterface $logger){
+    public function addLogger(loggingInterface $logger)
+    {
         $this->logger = $logger;
     }
 
@@ -73,7 +75,8 @@ abstract class apiCore implements coreInterface{
      * @param $path
      * @return $this
      */
-    public function setBasePath($path){
+    public function setBasePath($path)
+    {
         $this->request->setBasePath($path);
         return $this;
     }
@@ -84,7 +87,7 @@ abstract class apiCore implements coreInterface{
      * @param bool $flag
      * @return self
      */
-    public function setVersion($version, $flag = TRUE)
+    public function setVersion($version, $flag = true)
     {
         $this->version = $version;
         $this->request->setVersion($version, $flag);
@@ -96,8 +99,9 @@ abstract class apiCore implements coreInterface{
      * @param $format
      * @return mixed
      */
-    public function setBodyFormat($format = 'body'){
-        switch($format){
+    public function setBodyFormat($format = 'body')
+    {
+        switch($format) {
             case 'form':
                 $this->bodyFormat = 'form_params';
                 break;
@@ -112,7 +116,8 @@ abstract class apiCore implements coreInterface{
      * Get the current version provided to the API
      * @return mixed
      */
-    public function getVersion(){
+    public function getVersion()
+    {
         return $this->version;
     }
 
@@ -178,7 +183,8 @@ abstract class apiCore implements coreInterface{
      * @param array $arguments
      * @return mixed
      */
-    public function makeDirectRequest(string $name = '', array $arguments = []){
+    public function makeDirectRequest(string $name = '', array $arguments = [])
+    {
         return $this->__call($name, $arguments);
     }
 
@@ -203,7 +209,7 @@ abstract class apiCore implements coreInterface{
         $response = response::getInstance();
         $response::verbUsed($this->httpMethod); //set the verb used for the request,
         //do we have a logging class? If so, add data to it.
-        if(isset($this->logger)){
+        if (isset($this->logger)) {
             $this->logger->addMethod($this->httpMethod);
             $this->logger->addRequestURL((string)$this->request);
             $this->logger->addRequestArgs(json_encode($this->args));
@@ -214,13 +220,13 @@ abstract class apiCore implements coreInterface{
             $result = $client->request($this->httpMethod, (string)$this->request, $this->args);
             //$this->processResult($result);
             $response::processResult($result);
-        } catch (GuzzleHttp\Exception\GuzzleException $e){
+        } catch (GuzzleHttp\Exception\GuzzleException $e) {
             $response::addError($e->getCode(), $e->getMessage());
         }
 
-        if(isset($this->logger)){
+        if (isset($this->logger)) {
             $this->logger->setResponseTime(time());
-            if(!empty($error = $response::getError())){
+            if (!empty($error = $response::getError())) {
                 $this->logger->addRawResponse($error['message']);
                 $this->logger->addResponseStatusCode($error['code']);
             } else {
@@ -241,7 +247,8 @@ abstract class apiCore implements coreInterface{
      * Function to get the last result returned by an API call.
      * @return mixed
      */
-    public function getLastResult(){
+    public function getLastResult()
+    {
         return $this->lastResult;
     }
 
@@ -249,7 +256,8 @@ abstract class apiCore implements coreInterface{
      * Function to return the last endpoint we called.
      * @return mixed
      */
-    public function getLastCall(){
+    public function getLastCall()
+    {
         return $this->request->getEndpoint();
     }
 
@@ -257,25 +265,29 @@ abstract class apiCore implements coreInterface{
      * Getter for the errors array
      * @return array
      */
-    public function getErrors(){
+    public function getErrors()
+    {
         return $this->errors;
     }
 
     /**
      * Function to reset the path in the api request
      */
-    public function resetPath(){
+    public function resetPath()
+    {
         $this->request->resetPath();
     }
 
-    public function addCurlOpts($opts){
+    public function addCurlOpts($opts)
+    {
         $this->args['config']['curl'] = array_merge($this->args['config']['curl'], $opts);
     }
 
     /**
      * Function to set some default cURL arguments, such as SSL version.
      */
-    private function setDefaultCurlOpts(){
+    private function setDefaultCurlOpts()
+    {
         $this->args['config'] =
             array(
                 'curl' => array(
@@ -289,8 +301,9 @@ abstract class apiCore implements coreInterface{
      * @param array $args
      * @return self
      */
-    private function processArgs($args){
-        if(!empty($args)) {
+    private function processArgs($args)
+    {
+        if (!empty($args)) {
             switch ($this->httpMethod) {
                 case 'DELETE':
                 case 'GET':

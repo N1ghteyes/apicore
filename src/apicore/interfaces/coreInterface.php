@@ -2,18 +2,19 @@
 
 namespace n1ghteyes\apicore\interfaces;
 
-interface coreInterface {
+interface coreInterface
+{
     /**
      * coreInterface constructor.
      */
-    function __construct();
+    public function __construct();
 
     /**
      * Function to set the request schema. By default assumes http
      * @param string $schema
      * @return mixed
      */
-    function setSchema($schema = 'http');
+    public function setSchema($schema = 'http');
 
 
     /**
@@ -22,7 +23,7 @@ interface coreInterface {
      * @param $port
      * @return mixed
      */
-    function setServer($address, $port);
+    public function setServer($address, $port);
 
     /**
      * Function to set the version and if it should be used as part of the api request path
@@ -30,34 +31,34 @@ interface coreInterface {
      * @param bool $flag
      * @return mixed
      */
-    function setVersion($version, $flag = TRUE);
+    public function setVersion($version, $flag = true);
 
     /**
      * Function to set the method used in the request
      * @param $method
      * @return mixed
      */
-    function setHTTPMethod($method);
+    public function setHTTPMethod($method);
 
     /**
      * Function to set the type of data being sent and received
      * @param $format
      * @return mixed
      */
-    function setBodyFormat($format);
+    public function setBodyFormat($format);
 
     /**
      * Set auto Auth information, if it is needed.
      * @return mixed
      */
-    function auth($user, $pass, $type = 'basic');
+    public function auth($user, $pass, $type = 'basic');
 
     /**
      * PHP Magic function. Should be used to set the HTTP method of a request
      * @param string $name
      * @return mixed
      */
-    function __get($name);
+    public function __get($name);
 
     /**
      * Implements magic PHP __call method. Turns undeclared method calls into api endpoint requests
@@ -65,5 +66,5 @@ interface coreInterface {
      * @param $arguments
      * @return mixed
      */
-    function __call($name, $arguments);
+    public function __call($name, $arguments);
 }

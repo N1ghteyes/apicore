@@ -9,8 +9,8 @@ use GuzzleHttp;
  * Class response
  * @package n1ghteyes\apicore\structure
  */
-class response{
-
+class response
+{
     public $statusCode;
     public $dataType;
     public $data;
@@ -22,20 +22,24 @@ class response{
     private static $response;
     private static $error;
 
-    private function __construct(){}
+    private function __construct()
+    {
+    }
 
     /**
      * Static function to allow us to return a new response object.
      * @return response
      */
-    public static function getInstance(){
-        if(!self::$response) {
+    public static function getInstance()
+    {
+        if (!self::$response) {
             self::$response = new response();
         }
         return self::$response;
     }
 
-    public static function resetData(){
+    public static function resetData()
+    {
         self::$response = new response();
     }
 
@@ -43,7 +47,8 @@ class response{
      * Allow the verb used to be recorded as guzzle doesn't provide this info post request.
      * @param $verb
      */
-    public static function verbUsed($verb){
+    public static function verbUsed($verb)
+    {
         self::$response->verb = $verb;
     }
 
@@ -51,14 +56,15 @@ class response{
      * Process the provided guzzle response object.
      * @param GuzzleHttp $guzzleResponse
      */
-    public static function processResult($guzzleResponse){
+    public static function processResult($guzzleResponse)
+    {
         $dataType = $guzzleResponse->getHeader('Content-Type');
         self::$response->dataType = array_shift($dataType);
         self::$response->statusCode = $guzzleResponse->getStatusCode();
         self::$response->rawBodyData = (string)$guzzleResponse->getBody();
         self::$response->url = $guzzleResponse->getHeaderLine('Location');
 
-        switch(self::$response->dataType){
+        switch(self::$response->dataType) {
             case 'text/html': //for now, as some Apis dont set correct headers for XML.
                 //@todo add the ability to override these defaults before a request is made.
             case 'text/xml':
@@ -75,11 +81,13 @@ class response{
      * @param $code
      * @param $message
      */
-    public static function addError($code, $message){
+    public static function addError($code, $message)
+    {
         self::$error = array('code' => $code, 'message' => $message);
     }
 
-    public static function getError(){
+    public static function getError()
+    {
         return self::$error ?? [];
     }
 
@@ -90,10 +98,11 @@ class response{
      * @param array $out
      * @return array
      */
-    public function xml2array ( $xmlObject, $out = array () )
+    public function xml2array($xmlObject, $out = array())
     {
-        foreach ( (array) $xmlObject as $index => $node )
-            $out[$index] = ( is_object ( $node ) ||  is_array ( $node ) ) ? $this->xml2array ( $node ) : $node;
+        foreach ((array) $xmlObject as $index => $node) {
+            $out[$index] = (is_object($node) ||  is_array($node)) ? $this->xml2array($node) : $node;
+        }
 
         return $out;
     }

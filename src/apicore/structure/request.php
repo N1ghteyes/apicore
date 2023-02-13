@@ -2,8 +2,8 @@
 
 namespace n1ghteyes\apicore\structure;
 
-class request {
-
+class request
+{
     private $request;
     private $schema;
     private $server;
@@ -16,7 +16,6 @@ class request {
 
     public function __construct()
     {
-
     }
 
     /**
@@ -24,7 +23,8 @@ class request {
      * @param string $schema
      * @return mixed
      */
-    public function setSchema($schema){
+    public function setSchema($schema)
+    {
         $this->schema = $schema;
         return $this;
     }
@@ -35,7 +35,8 @@ class request {
      * @param $port
      * @return mixed
      */
-    public function setServer($address, $port){
+    public function setServer($address, $port)
+    {
         $this->server = $address.':'.$port;
         return $this;
     }
@@ -45,7 +46,8 @@ class request {
      * @param $path
      * @return $this
      */
-    public function setBasePath($path){
+    public function setBasePath($path)
+    {
         $this->basePath = rtrim(ltrim($path, '/'), '/');
         return $this;
     }
@@ -56,7 +58,8 @@ class request {
      * @param bool $flag
      * @return mixed
      */
-    public function setVersion($version, $flag){
+    public function setVersion($version, $flag)
+    {
         $this->version = $version;
         $this->useVersion = $flag;
         return $this;
@@ -68,18 +71,19 @@ class request {
      * @param bool $reset
      * @return $this
      */
-    public function addPathElement($path, $reset = FALSE){
+    public function addPathElement($path, $reset = false)
+    {
         $elements = array();
         $path = ltrim($path, '/');
-        if(strpos($path, '/') !== FALSE){
+        if (strpos($path, '/') !== false) {
             $elements = explode('/', $path);
         } else {
             $elements[] = $path;
         }
-        if($reset){
+        if ($reset) {
             $this->path = $elements;
         } else {
-            if(!empty($this->path)) {
+            if (!empty($this->path)) {
                 $this->path = array_merge($this->path, $elements);
             } else {
                 $this->path = $elements;
@@ -91,7 +95,8 @@ class request {
     /**
      * Function to reset the path part of the request. Allows a request object to be reused.
      */
-    public function resetPath(){
+    public function resetPath()
+    {
         $this->path = array();
         return $this;
     }
@@ -100,14 +105,16 @@ class request {
      * Function to add query string parameters to the request
      * @param $args
      */
-    public function addQueryString($args){
+    public function addQueryString($args)
+    {
         $this->queryString = '?'.http_build_query($args);
     }
 
     /**
      * Function to reset the query string.
      */
-    public function resetQueryString(){
+    public function resetQueryString()
+    {
         $this->queryString = '';
     }
 
@@ -115,7 +122,8 @@ class request {
      * Function to add
      * @param $endPoint
      */
-    public function addEndpoint($endPoint){
+    public function addEndpoint($endPoint)
+    {
         $this->endpoint = $endPoint;
     }
 
@@ -123,22 +131,24 @@ class request {
      * Allow us to grab the last endpoint call that was made.
      * @return mixed
      */
-    public function getEndpoint(){
+    public function getEndpoint()
+    {
         return $this->endpoint;
     }
 
     /**
      * Function to build the final request string
      */
-    private function buildRequest(){
+    private function buildRequest()
+    {
         $this->request = $this->schema . $this->server;
-        if($this->useVersion){
+        if ($this->useVersion) {
             $this->request .= '/'.$this->version;
         }
-        if($this->basePath){
+        if ($this->basePath) {
             $this->request .= '/'.$this->basePath;
         }
-        if(!empty($this->path)){
+        if (!empty($this->path)) {
             $this->request .= '/' . implode('/', $this->path);
         }
         $this->request .= '/'.$this->endpoint.$this->queryString;

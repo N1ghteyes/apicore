@@ -101,14 +101,10 @@ abstract class apiCore implements coreInterface
      */
     public function setBodyFormat($format = 'body')
     {
-        switch($format) {
-            case 'form':
-                $this->bodyFormat = 'form_params';
-                break;
-            default:
-                $this->bodyFormat = $format;
-                break;
-        }
+        $this->bodyFormat = match ($format) {
+            'form' => 'form_params',
+            default => $format,
+        };
         return $this;
     }
 
@@ -148,7 +144,7 @@ abstract class apiCore implements coreInterface
      */
     public function setHTTPMethod($method)
     {
-        $this->httpMethod = strtoupper($method);
+        $this->httpMethod = strtoupper((string) $method);
     }
 
     /**
@@ -158,29 +154,18 @@ abstract class apiCore implements coreInterface
      */
     public function __get($name)
     {
-        switch (strtolower($name)) {
-            case 'get':
-                $this->setHTTPMethod('GET');
-                break;
-            case 'post':
-                $this->setHTTPMethod('POST');
-                break;
-            case 'put':
-                $this->setHTTPMethod('PUT');
-                break;
-            case 'delete':
-                $this->setHTTPMethod('DELETE');
-                break;
-            default:
-                $this->request->addPathElement($name);
-        }
+        match (strtolower($name)) {
+            'get' => $this->setHTTPMethod('GET'),
+            'post' => $this->setHTTPMethod('POST'),
+            'put' => $this->setHTTPMethod('PUT'),
+            'delete' => $this->setHTTPMethod('DELETE'),
+            default => $this->request->addPathElement($name),
+        };
         return $this;
     }
 
     /**
      * Occasionally we need to force a request, for example to the base domain.
-     * @param string $name
-     * @param array $arguments
      * @return mixed
      */
     public function makeDirectRequest(string $name = '', array $arguments = [])
@@ -199,8 +184,8 @@ abstract class apiCore implements coreInterface
         $client = new GuzzleHttp\Client();
         $query = count($arguments) < 1 || !is_array($arguments) ? array() : $arguments[0];
         //Allow endpoints starting with an integer to be prepended with an underscore to make them valid method calls for PHP.
-        if (strpos($name, '_') === 0) {
-            $name = strlen($name) > 1 && is_numeric($name[1]) ? ltrim($name, '_') : $name;
+        if (str_starts_with((string) $name, '_')) {
+            $name = strlen((string) $name) > 1 && is_numeric($name[1]) ? ltrim((string) $name, '_') : $name;
         }
         $this->request->addEndpoint($name);
         $this->processArgs($query);

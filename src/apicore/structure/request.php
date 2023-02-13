@@ -2,7 +2,7 @@
 
 namespace n1ghteyes\apicore\structure;
 
-class request
+class request implements \Stringable
 {
     private $request;
     private $schema;
@@ -48,7 +48,7 @@ class request
      */
     public function setBasePath($path)
     {
-        $this->basePath = rtrim(ltrim($path, '/'), '/');
+        $this->basePath = rtrim(ltrim((string) $path, '/'), '/');
         return $this;
     }
 
@@ -74,8 +74,8 @@ class request
     public function addPathElement($path, $reset = false)
     {
         $elements = array();
-        $path = ltrim($path, '/');
-        if (strpos($path, '/') !== false) {
+        $path = ltrim((string) $path, '/');
+        if (str_contains($path, '/')) {
             $elements = explode('/', $path);
         } else {
             $elements[] = $path;
@@ -157,9 +157,9 @@ class request
      * Implements php magic __toString method. Return the specific request made as a string (Sans arguments)
      * @return mixed
      */
-    public function __toString()
+    public function __toString(): string
     {
         $this->buildRequest();
-        return $this->request;
+        return (string) $this->request;
     }
 }

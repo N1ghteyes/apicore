@@ -209,7 +209,7 @@ abstract class apiCore implements coreInterface
         $response = response::getInstance();
         $response::verbUsed($this->httpMethod); //set the verb used for the request,
         //do we have a logging class? If so, add data to it.
-        if (isset($this->logger)) {
+        if ($this->logger !== null) {
             $this->logger->addMethod($this->httpMethod);
             $this->logger->addRequestURL((string)$this->request);
             $this->logger->addRequestArgs(json_encode($this->args));
@@ -224,7 +224,7 @@ abstract class apiCore implements coreInterface
             $response::addError($e->getCode(), $e->getMessage());
         }
 
-        if (isset($this->logger)) {
+        if ($this->logger !== null) {
             $this->logger->setResponseTime(time());
             if (!empty($error = $response::getError())) {
                 $this->logger->addRawResponse($error['message']);

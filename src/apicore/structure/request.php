@@ -82,12 +82,10 @@ class request
         }
         if ($reset) {
             $this->path = $elements;
+        } elseif (!empty($this->path)) {
+            $this->path = array_merge($this->path, $elements);
         } else {
-            if (!empty($this->path)) {
-                $this->path = array_merge($this->path, $elements);
-            } else {
-                $this->path = $elements;
-            }
+            $this->path = $elements;
         }
         return $this;
     }

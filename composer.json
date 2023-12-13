@@ -6,7 +6,7 @@
         "php" : "^8.2",
         "ext-json": "*",
         "ext-simplexml": "*",
-        "guzzlehttp/guzzle": "^6.3"
+        "guzzlehttp/guzzle": "^7.8"
     },
     "authors": [
         {

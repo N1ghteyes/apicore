@@ -4,6 +4,46 @@
 
 This PHP class is designed to provide a single library for all RESTful API integrations, it prevents the need to download and use individual libraries for multiple services used in a project. The core class uses a combination of php Magic methods to construct api calls based on chaining, meaning that the class itself needs to have no knowledge of API structure and can be used with any integration that provides a RESTful series of endpoints.
 
+### V3 — what changed
+
+> Upgrading from 2.x? Read the full notes in `CHANGELOG.md`. TL;DR:
+>
+> - `__call()` returns a **fresh response instance** per call (no more singleton).
+> - **`http_errors` default is OFF** — 4xx / 5xx populate `$response->statusCode` + `rawBodyData` instead of throwing. Opt back in with `$api->throwOnError(true)`.
+> - New `$api->withHeaders([...])` — scopes headers to the next call only.
+> - New `client::__construct(?ClientInterface $client = null)` — inject a Guzzle client (e.g. with `MockHandler`) for tests.
+> - `$response->headers` now exposes the response's PSR-7 headers as a lowercase-keyed array.
+> - phpunit test suite + documented mocking pattern shipped with the package.
+
+### Testing against APICore
+
+APICore is mock-friendly via Guzzle's `MockHandler` — inject a `GuzzleHttp\Client` configured with canned responses + the history middleware:
+
+```php
+use GuzzleHttp\Client;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
+use GuzzleHttp\Psr7\Response;
+use n1ghteyes\apicore\client as ApiCoreClient;
+
+$history = [];
+$historyRef = &$history;
+$stack = HandlerStack::create(new MockHandler([
+    new Response(200, ['Content-Type' => 'application/json'], '{"ok":true}'),
+]));
+$stack->push(Middleware::history($historyRef));
+
+$api = new ApiCoreClient(new Client(['handler' => $stack]));
+$response = $api->setServer('api.test')->GET->resource();
+
+// Assert request shape:
+$request = $history[0]['request']; // PSR-7 RequestInterface
+// Assert response shape:
+$response->statusCode;  // 200
+$response->data->ok;    // true
+```
+
 ### Installation
 
 If you can, this should be installed with composer. Please note this is not currently available through packagist, so you will need to add the following repository to your composer.json:

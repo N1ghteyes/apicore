@@ -3,100 +3,147 @@
 namespace n1ghteyes\apicore\structure;
 
 use GuzzleHttp;
+use Psr\Http\Message\ResponseInterface;
 
 /**
- * @todo make this better.
- * Class response
- * @package n1ghteyes\apicore\structure
+ * Response value object — one instance per API call.
+ *
+ * **V3 change (breaking)**: This class used to be a process-wide
+ * singleton accessed via `response::getInstance()` + reset between
+ * calls via `response::resetData()`. That made concurrent callers
+ * step on each other and tests hostile. V3 returns a fresh instance
+ * from `apiCore::__call()` and exposes errors as a per-instance
+ * property rather than a static slot.
+ *
+ * Public fields preserved from V2 so consumers reading
+ * `$response->statusCode` etc continue to work unchanged.
  */
 class response
 {
-    public $statusCode;
-    public $dataType;
-    public $data;
-    public $verb;
-    public $url;
-    public $rawBodyData;
+    public ?int $statusCode = null;
+    public ?string $dataType = null;
+    public mixed $data = null;
+    public ?string $verb = null;
+    public ?string $url = null;
+    public string $rawBodyData = '';
 
-    /** @var response */
-    private static $response;
-    private static $error;
+    /**
+     * Headers from the underlying HTTP response, lowercase-keyed.
+     * Empty array on error path. New in V3.
+     *
+     * @var array<string, string>
+     */
+    public array $headers = [];
 
-    private function __construct()
+    /**
+     * Error metadata when the underlying transport failed (network
+     * error, malformed response, etc). Empty array on the happy
+     * path. With `http_errors=false` (V3 default on apiCore), 4xx /
+     * 5xx populate `statusCode` + `rawBodyData` *and* leave this
+     * empty — only true transport faults set an error.
+     *
+     * @var array{code?: int|string, message?: string}
+     */
+    public array $error = [];
+
+    /**
+     * Record the HTTP verb the request was dispatched with. Guzzle
+     * doesn't echo this back on the PSR-7 response so we capture it
+     * at call-time.
+     */
+    public function setVerb(string $verb): void
     {
+        $this->verb = $verb;
     }
 
     /**
-     * Static function to allow us to return a new response object.
-     * @return response
+     * Populate the response from a successful Guzzle dispatch (any
+     * status code — with http_errors=false even 4xx/5xx arrive here).
      */
-    public static function getInstance()
+    public function processResult(ResponseInterface $guzzleResponse): void
     {
-        if (!self::$response) {
-            self::$response = new response();
+        $contentType = $guzzleResponse->getHeader('Content-Type');
+        $this->dataType    = array_shift($contentType);
+        $this->statusCode  = $guzzleResponse->getStatusCode();
+        $this->rawBodyData = (string) $guzzleResponse->getBody();
+        $this->url         = $guzzleResponse->getHeaderLine('Location');
+
+        // Collapse PSR-7's array-of-values shape to a single string per
+        // header (joined by ", " per RFC 9110 §5.2). Keys lowercased
+        // for predictable lookup.
+        $headers = [];
+        foreach ($guzzleResponse->getHeaders() as $name => $values) {
+            $headers[strtolower((string) $name)] = implode(', ', $values);
         }
-        return self::$response;
-    }
+        $this->headers = $headers;
 
-    public static function resetData()
-    {
-        self::$response = new response();
-    }
-
-    /**
-     * Allow the verb used to be recorded as guzzle doesn't provide this info post request.
-     * @param $verb
-     */
-    public static function verbUsed($verb)
-    {
-        self::$response->verb = $verb;
-    }
-
-    /**
-     * Process the provided guzzle response object.
-     * @param GuzzleHttp $guzzleResponse
-     */
-    public static function processResult($guzzleResponse)
-    {
-        $dataType = $guzzleResponse->getHeader('Content-Type');
-        self::$response->dataType = array_shift($dataType);
-        self::$response->statusCode = $guzzleResponse->getStatusCode();
-        self::$response->rawBodyData = (string)$guzzleResponse->getBody();
-        self::$response->url = $guzzleResponse->getHeaderLine('Location');
-
-        self::$response->data = match (self::$response->dataType) {
-            'text/html', 'text/xml' => self::$response->xml2array(simplexml_load_string(self::$response->rawBodyData)),
-            default => json_decode(self::$response->rawBodyData),
+        $this->data = match ($this->dataType) {
+            'text/html', 'text/xml' => $this->xml2array(simplexml_load_string($this->rawBodyData)),
+            default => json_decode($this->rawBodyData),
         };
     }
 
     /**
-     * @param $code
-     * @param $message
+     * Record a transport-layer error. With http_errors=false this is
+     * only hit for genuine network/parse failures — 4xx/5xx come
+     * through `processResult` instead.
      */
-    public static function addError($code, $message)
+    public function addError(int|string $code, string $message): void
     {
-        self::$error = array('code' => $code, 'message' => $message);
+        $this->error = ['code' => $code, 'message' => $message];
     }
 
-    public static function getError()
+    /**
+     * @return array{code?: int|string, message?: string} empty array on no error
+     */
+    public function getError(): array
     {
-        return self::$error ?? [];
+        return $this->error;
+    }
+
+    public function hasError(): bool
+    {
+        return $this->error !== [];
     }
 
     /**
      * Convert simpleXML object to array.
      * @see http://www.php.net/manual/en/ref.simplexml.php#111227
-     * @param $xmlObject
-     * @param array $out
-     * @return array
+     *
+     * @param  array<mixed> $out
+     * @return array<mixed>
      */
-    public function xml2array($xmlObject, $out = array())
+    public function xml2array($xmlObject, array $out = []): array
     {
         foreach ((array) $xmlObject as $index => $node) {
-            $out[$index] = (is_object($node) ||  is_array($node)) ? $this->xml2array($node) : $node;
+            $out[$index] = (is_object($node) || is_array($node)) ? $this->xml2array($node) : $node;
         }
-
         return $out;
+    }
+
+    // ---------------------------------------------------------------
+    // Deprecated static façade — preserved for V2 callers that ran
+    // `response::getInstance()` or `response::getError()` directly.
+    // These will be removed in V4. New code should use the instance
+    // returned by `apiCore::__call()`.
+    // ---------------------------------------------------------------
+
+    /**
+     * @deprecated V3: pass through the response instance returned by
+     *             __call instead of fetching this singleton.
+     */
+    public static function getInstance(): self
+    {
+        return new self();
+    }
+
+    /**
+     * @deprecated V3: no longer needed — apiCore creates a fresh
+     *             instance per call.
+     */
+    public static function resetData(): void
+    {
+        // no-op; preserved so V2 callers that happened to invoke this
+        // don't break.
     }
 }

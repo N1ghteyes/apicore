@@ -4,6 +4,7 @@ namespace n1ghteyes\apicore\structure;
 
 use n1ghteyes\apicore\interfaces\coreInterface;
 use GuzzleHttp;
+use GuzzleHttp\ClientInterface;
 use n1ghteyes\apicore\interfaces\loggingInterface;
 
 /**
@@ -16,6 +17,21 @@ use n1ghteyes\apicore\interfaces\loggingInterface;
 
 /**
  * Class apiCore
+ *
+ * V3 (breaking) changes:
+ *   - `__call()` returns a FRESH `response` instance per call (V2
+ *     returned a process-wide singleton — concurrent / threaded
+ *     callers stepped on each other + tests were hostile).
+ *   - Guzzle's `http_errors` is OFF by default so 4xx / 5xx responses
+ *     populate `statusCode` + `rawBodyData` instead of being swallowed
+ *     into an exception with the body lost. Opt back in via
+ *     `->throwOnError(true)`.
+ *   - New `->withHeaders([...])` adds headers scoped to the NEXT call
+ *     only; sticky `auth()` headers are preserved across calls as
+ *     before.
+ *   - Optional injectable Guzzle client (via constructor) for tests:
+ *     swap in a `Client` built around `GuzzleHttp\Handler\MockHandler`
+ *     to drive deterministic responses.
  */
 abstract class apiCore implements coreInterface
 {
@@ -32,10 +48,32 @@ abstract class apiCore implements coreInterface
     protected $logger;
 
     /**
+     * Guzzle's `http_errors` setting (V3 default: false). When false,
+     * 4xx/5xx responses come through `processResult` and populate the
+     * response's `statusCode` + `rawBodyData` — the caller decides
+     * how to react. When true, Guzzle throws BadResponseException
+     * and the response's `error` field is populated instead (V2
+     * behaviour for back-compat opt-in).
+     */
+    private bool $throwOnError = false;
+
+    /**
+     * Headers added via `withHeaders()` — cleared after the next
+     * `__call`. Distinct from `auth()` headers which stick.
+     *
+     * @var array<string, string>
+     */
+    private array $perCallHeaders = [];
+
+    /** Injectable for tests. Falls back to a default Guzzle client. */
+    private ?ClientInterface $client = null;
+
+    /**
      * apiCore constructor.
      */
-    public function __construct()
+    public function __construct(?ClientInterface $client = null)
     {
+        $this->client = $client;
         $this->request = new request();
         $this->setSchema(); //set the defaults
         $this->setDefaultCurlOpts();
@@ -118,6 +156,33 @@ abstract class apiCore implements coreInterface
     }
 
     /**
+     * V3: opt into Guzzle's BadResponseException semantics for 4xx /
+     * 5xx responses. Default off — non-2xx populates the response's
+     * `statusCode` + `rawBodyData` instead, so the caller can branch
+     * on status without try/catch.
+     */
+    public function throwOnError(bool $throw = true): self
+    {
+        $this->throwOnError = $throw;
+        return $this;
+    }
+
+    /**
+     * V3: add headers scoped to the next request only. After dispatch
+     * the map is cleared. Headers added via `auth(..., 'header')`
+     * stick across calls as before.
+     *
+     * @param array<string, string> $headers
+     */
+    public function withHeaders(array $headers): self
+    {
+        foreach ($headers as $name => $value) {
+            $this->perCallHeaders[(string) $name] = (string) $value;
+        }
+        return $this;
+    }
+
+    /**
      * Function to add any auth details to
      * @param $key
      * @param $value
@@ -177,11 +242,12 @@ abstract class apiCore implements coreInterface
      * Magic __call method, will translate all function calls to object to API requests
      * @param $name - name of the function
      * @param $arguments - an array of arguments
-     * @return mixed
+     * @return response a fresh response instance per call (V3 — no
+     *                  longer a singleton)
      */
     public function __call($name, $arguments)
     {
-        $client = new GuzzleHttp\Client();
+        $client = $this->client ?? new GuzzleHttp\Client();
         $query = count($arguments) < 1 || !is_array($arguments) ? array() : $arguments[0];
         //Allow endpoints starting with an integer to be prepended with an underscore to make them valid method calls for PHP.
         if (str_starts_with((string) $name, '_')) {
@@ -189,10 +255,29 @@ abstract class apiCore implements coreInterface
         }
         $this->request->addEndpoint($name);
         $this->processArgs($query);
-        //clear the response object from last call.
-        response::resetData();
-        $response = response::getInstance();
-        $response::verbUsed($this->httpMethod); //set the verb used for the request,
+
+        // Merge per-call headers into args for this dispatch. Sticky
+        // `auth(..., 'header')` headers already live in args['headers'];
+        // we union per-call on top so a per-call value overrides a
+        // sticky one with the same name (intuitive override semantics).
+        $stickyHeaders = isset($this->args['headers']) && is_array($this->args['headers'])
+            ? $this->args['headers']
+            : [];
+        $callArgs = $this->args;
+        if ($this->perCallHeaders !== []) {
+            // `$a + $b` keeps `$a`'s value when keys collide — so per-call
+            // headers go first so a per-call value overrides a sticky one
+            // with the same name (intuitive override semantics).
+            $callArgs['headers'] = $this->perCallHeaders + $stickyHeaders;
+        }
+
+        // V3: http_errors=false by default — non-2xx flow through to
+        // `processResult` so callers see the body.
+        $callArgs['http_errors'] = $this->throwOnError;
+
+        $response = new response();
+        $response->setVerb($this->httpMethod);
+
         //do we have a logging class? If so, add data to it.
         if ($this->logger !== null) {
             $this->logger->addMethod($this->httpMethod);
@@ -202,21 +287,31 @@ abstract class apiCore implements coreInterface
             $this->logger->setRequestTime(time());
         }
         try {
-            $result = $client->request($this->httpMethod, (string)$this->request, $this->args);
-            //$this->processResult($result);
-            $response::processResult($result);
+            $result = $client->request($this->httpMethod, (string)$this->request, $callArgs);
+            $response->processResult($result);
+        } catch (GuzzleHttp\Exception\BadResponseException $e) {
+            // Only reachable when throwOnError(true) is set (Guzzle
+            // wraps 4xx/5xx into BadResponseException). Preserve the
+            // status + body off the wrapped response so callers don't
+            // lose the payload.
+            if ($e->hasResponse()) {
+                $response->processResult($e->getResponse());
+            }
+            $response->addError($e->getCode(), $e->getMessage());
         } catch (GuzzleHttp\Exception\GuzzleException $e) {
-            $response::addError($e->getCode(), $e->getMessage());
+            // Transport-layer failure (DNS, connect timeout, etc).
+            // Body unavailable; surface the error only.
+            $response->addError($e->getCode(), $e->getMessage());
         }
 
         if ($this->logger !== null) {
             $this->logger->setResponseTime(time());
-            if (!empty($error = $response::getError())) {
-                $this->logger->addRawResponse($error['message']);
-                $this->logger->addResponseStatusCode($error['code']);
+            if ($response->hasError()) {
+                $this->logger->addRawResponse((string) ($response->getError()['message'] ?? ''));
+                $this->logger->addResponseStatusCode((int) ($response->getError()['code'] ?? 0));
             } else {
                 $this->logger->addRawResponse($response->rawBodyData);
-                $this->logger->addResponseStatusCode($response->statusCode);
+                $this->logger->addResponseStatusCode((int) $response->statusCode);
             }
         }
 
@@ -224,6 +319,8 @@ abstract class apiCore implements coreInterface
         $this->request->resetQueryString();
         unset($this->args['query']);
         unset($this->args[$this->bodyFormat]);
+        // V3: per-call headers cleared after dispatch.
+        $this->perCallHeaders = [];
 
         return $response;
     }

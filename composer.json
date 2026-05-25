@@ -19,8 +19,17 @@
             "n1ghteyes\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "n1ghteyes\\apicore\\tests\\": "tests/"
+        }
+    },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.14",
-        "rector/rector": "^0.15.13"
+        "rector/rector": "^0.15.13",
+        "phpunit/phpunit": "^11.0"
+    },
+    "scripts": {
+        "test": "phpunit"
     }
 }
